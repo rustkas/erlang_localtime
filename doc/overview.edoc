@@ -1,0 +1,7 @@
+@author Dmitry S. Melnikov <dmitryme@gmail.com>
+@author Jesse Gumm <gumm@sigma-star.com>
+@author Heinz N. Gies
+@title erlang_localtime
+@doc Erlang library for conversion from one local time to another
+@copyright Apache-2.0, 2010 Dmitry S. Melnikov
+@since 2010

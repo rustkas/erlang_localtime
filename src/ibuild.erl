@@ -1,3 +1,4 @@
+%% @private
 %% @author  Dmitry S. Melnikov (dmitryme@gmail.com)
 %% @copyright 2010 Dmitry S. Melnikov
 

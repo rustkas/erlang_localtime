@@ -1,2 +1,6 @@
 ebin/
 _build/
+rebar3
+doc/*
+!doc/style.css
+!doc/overview.edoc

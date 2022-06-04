@@ -202,7 +202,7 @@
                             "US/Alaska"],
                            ["GYT","America/Guyana"],
                            ["PMST","America/Miquelon"],
-                           ["UTC","Etc/UTC","Antarctica/Troll",
+                           ["UTC","Antarctica/Troll","Etc/UTC",
                             "Etc/Universal","Etc/Zulu","UTC","Universal",
                             "Zulu"],
                            ["WIT","Asia/Jayapura"],

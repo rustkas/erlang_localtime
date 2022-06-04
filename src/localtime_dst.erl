@@ -13,12 +13,11 @@
       check/2
    ]).
 
--compile([export_all]).
 
-
-% check(DateTime, TimeZone) -> is_in_dst | is_not_in_dst | ambiguous_time | time_not_exists
-%  DateTime = DateTime()
-%  TimeZone = tuple()
+-spec check(DateTime, Timezone) -> Result when
+	DateTime :: calendar:datetime(), 
+	Timezone :: tuple(),
+	Result :: is_in_dst | is_not_in_dst | ambiguous_time | time_not_exists.
 check(DateTime, Timezone) when is_list(Timezone) ->
     case lists:keyfind(localtime:get_timezone(Timezone), 1, ?tz_database) of
         false ->

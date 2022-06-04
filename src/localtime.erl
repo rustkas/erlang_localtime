@@ -23,12 +23,22 @@
      ,fmt_shift/1
   ]).
 
-% utc_to_local(UtcDateTime, Timezone) -> LocalDateTime | [LocalDateTime, DstLocalDateTime] | {error, ErrDescr}
-%  UtcDateTime = DateTime()
-%  Timezone = String()
-%  LocalDateTime = DateTime()
-%  DstLocalDateTime = DateTime()
-%  ErrDescr = atom(), unknown_tz
+-export_type[timezone/0].
+
+-type timezone() :: string(). % TimeZone
+
+%% @doc Converts <abbr title="Coordinated Universal Time">UTC</abbr> time 
+%% to local according to specified Timezone.<br/>
+%% `TimeList' is `[LocalDateTime, DstLocalDateTime]'.
+
+-spec utc_to_local(UtcDateTime, Timezone) -> Result when
+	UtcDateTime :: calendar:datetime(),
+	Timezone :: timezone(),
+	Result :: LocalDateTime | TimeList | Error,
+	TimeList :: [calendar:datetime()],
+	Error :: {error, ErrDescr},
+	LocalDateTime :: calendar:datetime(),
+	ErrDescr :: atom() | unknown_tz.
 utc_to_local(UtcDateTime, Timezone) ->
    case lists:keyfind(get_timezone(Timezone), 1, ?tz_database) of
       false ->
@@ -47,12 +57,17 @@ utc_to_local(UtcDateTime, Timezone) ->
          end
    end.
 
-% local_to_utc(LocalDateTime, Timezone) -> UtcDateTime | [UtcDateTime, DstUtcDateTime] | time_not_exists | {error, ErrDescr}
-%  LocalDateTime = DateTime()
-%  Timezone = String()
-%  UtcDateTime = DateTime()
-%  DstUtcDateTime = DateTime()
-%  ErrDescr = atom(), unknown_tz
+%% @doc Converts local time to <abbr title="Coordinated Universal Time">UTC</abbr>.<br/>
+%% `TimeList' is `[UtcDateTime, DstUtcDateTime]'.
+
+-spec local_to_utc(LocalDateTime, Timezone) -> Result when
+	LocalDateTime :: calendar:datetime(),
+	Timezone :: timezone(),
+	Result :: UtcDateTime | TimeList | time_not_exists | Error,
+	UtcDateTime :: calendar:datetime(),
+	TimeList :: [calendar:datetime()],
+	Error :: {error, ErrDescr},
+	ErrDescr :: atom() | unknown_tz.
 local_to_utc(LocalDateTime, Timezone) ->
    case lists:keyfind(get_timezone(Timezone), 1, ?tz_database) of
       false ->
@@ -73,11 +88,14 @@ local_to_utc(LocalDateTime, Timezone) ->
          end
    end.
 
-% local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) -> LocalDateTime | ambiguous | time_not_exists | {error, ErrDescr}
-%  LocalDateTime = DateTime()
-%  TimezoneFrom = String()
-%  TimezoneTo = String()
-%  ErrDescr = atom(), unknown_tz
+%% @doc  Converts local time to local.
+-spec local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) -> Result when
+	LocalDateTime :: calendar:datetime(),
+	TimezoneFrom :: timezone(),
+	TimezoneTo :: timezone(),
+	Result :: LocalDateTime | ambiguous | time_not_exists | Error,
+	Error :: {error, ErrDescr},
+	ErrDescr :: atom() | unknown_tz.
 local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) ->
    case local_to_utc(LocalDateTime, TimezoneFrom) of
       UtcDateTime = {{_,_,_},{_,_,_}} ->
@@ -94,11 +112,13 @@ local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo) ->
          Other
    end.
 
-% local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) -> LocalDateTime | ambiguous | time_not_exists | {error, ErrDescr}
-%  LocalDateTime = DateTime()
-%  TimezoneFrom = String()
-%  TimezoneTo = String()
-%  ErrDescr = atom(), unknown_tz
+-spec local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) -> Result when
+	LocalDateTime :: calendar:datetime(),
+	TimezoneFrom :: timezone(),
+	TimezoneTo :: timezone(),
+	Result :: LocalDateTime | ambiguous | time_not_exists | Error,
+	Error :: {error, ErrDescr},
+	ErrDescr :: atom() | unknown_tz.
 local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) ->
    case local_to_utc(LocalDateTime, TimezoneFrom) of
       UtcDateTime = {{_,_,_},{_,_,_}} ->
@@ -115,15 +135,22 @@ local_to_local_dst(LocalDateTime, TimezoneFrom, TimezoneTo) ->
          Other
    end.
 
-% tz_name(DateTime(), Timezone) -> {Abbr, Name} | {{StdAbbr, StdName}, {DstAbbr, DstName}} | unable_to_detect | {error, ErrDesc}
-%  Timezone = String()
-%  Abbr = String()
-%  Name = String()
-%  StdAbbr = String()
-%  StdName = String()
-%  DstAbbr = String()
-%  DstName = String()
-%  ErrDesc = atom(), unknown_tz
+%% @doc 
+%% @returns a timezone name (E.g. MSK, MSD, etc).
+-spec tz_name(DateTime, Timezone) -> Result when
+	DateTime :: calendar:datetime(),
+	Timezone :: timezone(),
+	Result :: AbbrTuple | StdTuple | unable_to_detect | Error,
+	AbbrTuple :: {Abbr, Name},
+	StdTuple :: {{StdAbbr, StdName}, {DstAbbr, DstName}},
+	Abbr :: string(),
+	Name :: string(),
+	StdAbbr :: string(),
+	StdName :: string(),
+	DstAbbr :: string(),
+	DstName :: string(),
+	Error :: {error, ErrDesc},
+	ErrDesc :: atom() | unknown_tz.
 tz_name(_UtcDateTime, "UTC") ->
    {"UTC", "UTC"};
 tz_name(LocalDateTime, Timezone) ->
@@ -145,15 +172,21 @@ tz_name(LocalDateTime, Timezone) ->
          end
    end.
 
-% tz_shift(LocalDateTime, Timezone) ->  Shift | {Shift, DstSift} | unable_to_detect | {error, ErrDesc}
-%  returns time shift from GMT
-%  LocalDateTime = DateTime()
-%  Timezone = String()
-%  Shift = DstShift = {Sign, Hours, Minutes}
-%  Sign = term(), '+', '-'
-%  Hours = Minutes = Integer(),
-%  {Shift, DstShift} - returns, when shift is ambiguous
-%  ErrDesc = atom(), unknown_tz
+%% @doc Shifts local datetime.
+%% @returns time difference between local datetime and GMT. 
+%% Returns `{Shift, DstShift}' when shift is ambiguous.
+-spec  tz_shift(LocalDateTime, Timezone) ->  Result when
+	LocalDateTime :: calendar:datetime(),
+	Timezone :: timezone(),
+	Result :: 0 | Shift | ShiftTuple | unable_to_detect | Error,
+	ShiftTuple :: {Shift, DstShift},
+	Shift :: DstShift,
+	DstShift :: {Sign, Hours, Minutes},
+	Sign :: term() | '+' | '-',
+	Hours :: integer(),
+	Minutes :: integer(),
+	Error :: {error, ErrDesc},
+	ErrDesc :: atom() | unknown_tz.
 tz_shift(_UtcDateTime, "UTC") ->
    0;
 tz_shift(LocalDateTime, Timezone) ->
@@ -175,10 +208,25 @@ tz_shift(LocalDateTime, Timezone) ->
          end
    end.
 
-% the same as tz_shift/2, but calculates time difference between two local timezones
+%% @doc The same as {@link tz_shift/2}, but calculates time difference between two local timezones.
+%% @throws term()
+
+-spec tz_shift(LocalDateTime, TimezoneFrom, TimezoneTo) -> Result when
+	LocalDateTime :: calendar:datetime(), 
+	TimezoneFrom :: timezone(), 
+	TimezoneTo :: timezone(),
+	Result :: 0 | Shift | ShiftTuple | unable_to_detect | Error,
+	ShiftTuple :: {Shift, DstShift},
+	Shift :: DstShift,
+	DstShift :: {Sign, Hours, Minutes},
+	Sign :: term() | '+' | '-',
+	Hours :: integer(),
+	Minutes :: integer(),
+	Error :: {error, ErrDesc},
+	ErrDesc :: atom() | unknown_tz.
 tz_shift(LocalDateTime, TimezoneFrom, TimezoneTo) ->
    F = fun() ->
-      FromShift = fmt_shift(tz_shift(LocalDateTime, TimezoneFrom)),
+	  FromShift = fmt_shift(tz_shift(LocalDateTime, TimezoneFrom)),
       DateTimeTo = localtime:local_to_local(LocalDateTime, TimezoneFrom, TimezoneTo),
       ToShift = fmt_shift(tz_shift(DateTimeTo, TimezoneTo)),
       fmt_min(ToShift-FromShift)
@@ -189,13 +237,24 @@ tz_shift(LocalDateTime, TimezoneFrom, TimezoneTo) ->
          Err
    end.
 
+-spec adjust_datetime(DateTime, Minutes) -> Result when
+	DateTime :: calendar:datetime(), 
+	Minutes :: integer(),
+	Result :: calendar:datetime().
 adjust_datetime(DateTime, Minutes) ->
    Seconds = calendar:datetime_to_gregorian_seconds(DateTime) + Minutes * 60,
    calendar:gregorian_seconds_to_datetime(Seconds).
 
+%% @doc Get TimeZone
+
+-spec get_timezone(TimeZone) -> Result when
+	TimeZone :: timezone(),
+	Result :: timezone().
 get_timezone(TimeZone) ->
     get_timezone_inner(TimeZone).
 
+-spec list_timezones() -> Result when
+	Result :: [timezone()].
 list_timezones() ->
     dict:fetch_keys(?tz_index).
 
@@ -203,14 +262,29 @@ list_timezones() ->
 % privates
 % =======================================================================
 
+-spec invert_shift(Minutes) -> Result when
+	Minutes :: integer(),
+	Result :: integer().
 invert_shift(Minutes) ->
    -Minutes.
 
+-spec fmt_min(Shift) -> Result when
+	Shift :: integer(),
+	Result :: {Sign, Hours, Minutes},
+	Sign :: '+' | '-',
+	Hours :: integer(),
+	Minutes :: integer().
 fmt_min(Shift) when Shift < 0 ->
    {'-', abs(Shift) div 60, abs(Shift) rem 60};
 fmt_min(Shift) ->
    {'+', Shift div 60, Shift rem 60}.
 
+-spec fmt_shift(any() | Shift | 0) -> Return when
+	Shift :: {Sign, Hours, Minutes},
+	Sign :: '+' | '-',
+	Hours :: integer(),
+	Minutes :: integer(),
+	Return :: integer().
 fmt_shift({'+', H, M}) ->
    H * 60 + M;
 fmt_shift({'-', H, M}) ->
